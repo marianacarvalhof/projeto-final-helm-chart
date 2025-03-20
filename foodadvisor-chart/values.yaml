@@ -1,0 +1,91 @@
+backend:
+  replicaCount: 1
+  applicationName: foodadvisor-backend 
+
+  image:
+    repository: marianasantosoc/foodadvisor-api-new
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  serviceAccount:
+    create: false
+    automount: true
+    annotations: {}
+    name: "frontend"
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 2
+
+  service:
+    type: ClusterIP
+    port: 1337
+    targetPort: 1337
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations: {}
+    hosts:
+      - host: foodadvisor.backend
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: foodadvisor-backend
+                port:
+                  number: 1337    
+  extraEnvs:
+  - name: DATABASE_CLIENT
+    value: postgres
+  - name: DATABASE_HOST
+    value: strapi-foodadvisor-postgresql
+  - name: DATABASE_PORT
+    value: 5432
+  - name: DATABASE_USERNAME
+    value: strapi
+  - name: DATABASE_PASSWORD
+    value: strapi
+  - name: DATABASE_NAME
+    value: strapi
+ 
+frontend:
+  replicaCount: 1
+  applicationName: foodadvisor-frontend 
+
+  image:
+    repository: marianasantosoc/foodadvisor-client-new
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  serviceAccount:
+    create: false
+    automount: true
+    annotations: {}
+    name: "frontend"
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations: {}
+    hosts:
+      - host: foodadvisor.client
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: foodadvisor-frontend
+                port:
+                  number: 3000
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+  
